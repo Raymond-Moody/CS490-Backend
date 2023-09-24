@@ -43,6 +43,9 @@ class Category(models.Model):
         managed = False
         db_table = 'category'
 
+    def __str__(self):
+        return self.name
+
 
 class City(models.Model):
     city_id = models.SmallAutoField(primary_key=True)
@@ -67,7 +70,7 @@ class Country(models.Model):
 
 class Customer(models.Model):
     customer_id = models.SmallAutoField(primary_key=True)
-    store = models.ForeignKey('Store', on_delete=models.RESTRICT, related_name='+') #related_name is a hacky solution I don't fully understand
+    store = models.ForeignKey('Store', on_delete=models.RESTRICT)
     first_name = models.CharField(max_length=45)
     last_name = models.CharField(max_length=45)
     email = models.CharField(max_length=50, blank=True, null=True)
@@ -87,7 +90,7 @@ class Film(models.Model):
     description = models.TextField(blank=True, null=True)
     release_year = models.TextField(blank=True, null=True)  # This field type is a guess.
     language = models.ForeignKey('Language', on_delete=models.RESTRICT)
-    original_language = models.ForeignKey('Language', on_delete=models.RESTRICT, related_name='film_original_language_set', blank=True, null=True)
+    original_language = models.ForeignKey('Language', on_delete=models.RESTRICT, related_name="film_original_language_set", blank=True, null=True)
     rental_duration = models.PositiveIntegerField()
     rental_rate = models.DecimalField(max_digits=4, decimal_places=2)
     length = models.PositiveSmallIntegerField(blank=True, null=True)
@@ -95,6 +98,8 @@ class Film(models.Model):
     rating = models.CharField(max_length=5, blank=True, null=True)
     special_features = models.CharField(max_length=54, blank=True, null=True)
     last_update = models.DateTimeField()
+    categories = models.ManyToManyField(Category, through='FilmCategory')
+    actors = models.ManyToManyField(Actor, through='FilmActor')
 
     class Meta:
         managed = False
@@ -102,7 +107,7 @@ class Film(models.Model):
 
 
 class FilmActor(models.Model):
-    actor = models.OneToOneField(Actor, on_delete=models.RESTRICT, primary_key=True)  # The composite primary key (actor_id, film_id) found, that is not supported. The first column is selected.
+    actor = models.ForeignKey(Actor, on_delete=models.RESTRICT)  # The composite primary key (actor_id, film_id) found, that is not supported. The first column is selected.
     film = models.ForeignKey(Film, on_delete=models.RESTRICT)
     last_update = models.DateTimeField()
 
@@ -113,7 +118,7 @@ class FilmActor(models.Model):
 
 
 class FilmCategory(models.Model):
-    film = models.OneToOneField(Film, on_delete=models.RESTRICT, primary_key=True)  # The composite primary key (film_id, category_id) found, that is not supported. The first column is selected.
+    film = models.ForeignKey(Film, on_delete=models.RESTRICT)  # The composite primary key (film_id, category_id) found, that is not supported. The first column is selected.
     category = models.ForeignKey(Category, on_delete=models.RESTRICT)
     last_update = models.DateTimeField()
 
@@ -152,6 +157,9 @@ class Language(models.Model):
     class Meta:
         managed = False
         db_table = 'language'
+
+    def __str__(self):
+        return self.name
 
 
 class Payment(models.Model):
@@ -203,7 +211,7 @@ class Staff(models.Model):
 
 class Store(models.Model):
     store_id = models.AutoField(primary_key=True)
-    manager_staff = models.OneToOneField(Staff, on_delete=models.RESTRICT)
+    manager_staff = models.OneToOneField(Staff, on_delete=models.RESTRICT, related_name="manager")
     address = models.ForeignKey(Address, on_delete=models.RESTRICT)
     last_update = models.DateTimeField()
 

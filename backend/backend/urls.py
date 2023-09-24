@@ -18,12 +18,13 @@ from django.contrib import admin
 from django.urls import path, include
 
 from rest_framework import routers
-#from healthcheck import views
+#from healthcheck import views as health
 from sakila import views
 
 router = routers.DefaultRouter()
-#router.register(r'rest', views.HealthCheckView, 'rest')
+#router.register(r'rest', health.HealthCheckView, 'rest')
 router.register(r'films', views.FilmViewSet, 'films')
+router.register(r'actors', views.ActorViewSet, 'actors')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
