@@ -5,6 +5,7 @@ class FilmSerializer(serializers.ModelSerializer):
     language = serializers.StringRelatedField(many=False)
     original_language = serializers.StringRelatedField(many=False)
     categories = serializers.StringRelatedField(many=True)
+    #actors = serializers.StringRelatedField(many=True)
 
     class Meta:
         model = Film

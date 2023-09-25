@@ -18,6 +18,8 @@ class Actor(models.Model):
         managed = False
         db_table = 'actor'
 
+    def __str__(self):
+        return self.first_name + " " + self.last_name
 
 class Address(models.Model):
     address_id = models.SmallAutoField(primary_key=True)
