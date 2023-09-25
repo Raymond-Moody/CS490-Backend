@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Film, Actor, Customer
+from .models import Film, Actor, Customer, City, Country, Address
 
 class FilmSerializer(serializers.ModelSerializer):
     language = serializers.StringRelatedField(many=False)
@@ -30,9 +30,25 @@ class ActorSerializer(serializers.ModelSerializer):
         ret['last_name'] = ret['last_name'].title()
         return ret
 
-class CustomerSerializer(serializers.ModelSerializer):
-    address = serializers.StringRelatedField(many=False)
+class CountrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Country
+        fields = ['country_id', 'country']
 
+class CitySerializer(serializers.ModelSerializer):
+    country = CountrySerializer(many=False);
+    class Meta:
+        model = City
+        fields = ['city_id', 'city', 'country']
+
+class AddressSerializer(serializers.ModelSerializer):
+    city = CitySerializer(many=False)
+    class Meta:
+        model = Address
+        fields = ['address_id', 'address', 'address2', 'district', 'postal_code', 'phone', 'city']
+
+class CustomerSerializer(serializers.ModelSerializer):
+    address = AddressSerializer(many=False) 
     class Meta:
         model = Customer
         fields = ['customer_id', 'first_name', 'last_name', 'email', 'address'];
@@ -43,3 +59,4 @@ class CustomerSerializer(serializers.ModelSerializer):
         ret['first_name'] = ret['first_name'].title()
         ret['last_name'] = ret['last_name'].title()
         return ret
+

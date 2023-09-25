@@ -97,7 +97,6 @@ class CustomerViewSet(viewsets.ModelViewSet):
         fname = parameters.get('first_name')
         lname = parameters.get('last_name')
         cust_id = parameters.get('customer_id')
-        print(fname, lname, cust_id)
         if fname is not None:
             queryset = queryset.filter(first_name__istartswith=fname)
         if lname is not None:
