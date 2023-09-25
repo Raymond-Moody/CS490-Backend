@@ -5,8 +5,8 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
-from .models import Film, Actor
-from .serializers import FilmSerializer, ActorSerializer
+from .models import Film, Actor, Customer
+from .serializers import FilmSerializer, ActorSerializer, CustomerSerializer
 
 # Create your views here.
 class FilmViewSet(viewsets.ModelViewSet):
@@ -86,3 +86,22 @@ class ActorViewSet(viewsets.ModelViewSet):
                                     ''', [pk]) 
         serializer = FilmSerializer(queryset, many=True)
         return Response(serializer.data)
+
+class CustomerViewSet(viewsets.ModelViewSet):
+    serializer_class = CustomerSerializer
+    
+    def get_queryset(self):
+        queryset = Customer.objects.all()
+        queryset = queryset.filter(store_id=1)
+        parameters = self.request.query_params
+        fname = parameters.get('first_name')
+        lname = parameters.get('last_name')
+        cust_id = parameters.get('customer_id')
+        print(fname, lname, cust_id)
+        if fname is not None:
+            queryset = queryset.filter(first_name__istartswith=fname)
+        if lname is not None:
+            queryset = queryset.filter(last_name__istartswith=lname)
+        if cust_id is not None:
+            queryset = queryset.filter(customer_id=cust_id)
+        return queryset

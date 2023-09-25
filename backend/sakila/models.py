@@ -35,6 +35,9 @@ class Address(models.Model):
         managed = False
         db_table = 'address'
 
+    def __str__(self):
+        return self.address + ", " + str(self.city)
+
 
 class Category(models.Model):
     category_id = models.AutoField(primary_key=True)
@@ -58,6 +61,9 @@ class City(models.Model):
     class Meta:
         managed = False
         db_table = 'city'
+    
+    def __str__(self):
+        return self.city + ", " + str(self.country)
 
 
 class Country(models.Model):
@@ -69,6 +75,8 @@ class Country(models.Model):
         managed = False
         db_table = 'country'
 
+    def __str__(self):
+        return self.country
 
 class Customer(models.Model):
     customer_id = models.SmallAutoField(primary_key=True)

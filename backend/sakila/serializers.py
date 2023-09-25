@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Film, Actor
+from .models import Film, Actor, Customer
 
 class FilmSerializer(serializers.ModelSerializer):
     language = serializers.StringRelatedField(many=False)
@@ -22,6 +22,20 @@ class ActorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Actor
         fields = ['actor_id','first_name','last_name']
+
+    def to_representation(self, instance):
+        #Convert name to Title Case
+        ret = super().to_representation(instance)
+        ret['first_name'] = ret['first_name'].title()
+        ret['last_name'] = ret['last_name'].title()
+        return ret
+
+class CustomerSerializer(serializers.ModelSerializer):
+    address = serializers.StringRelatedField(many=False)
+
+    class Meta:
+        model = Customer
+        fields = ['customer_id', 'first_name', 'last_name', 'email', 'address'];
 
     def to_representation(self, instance):
         #Convert name to Title Case
