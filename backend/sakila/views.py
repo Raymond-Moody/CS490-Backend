@@ -5,8 +5,8 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
-from .models import Film, Actor, Customer
-from .serializers import FilmSerializer, ActorSerializer, CustomerSerializer
+from .models import Film, Actor, Customer, Rental
+from .serializers import FilmSerializer, ActorSerializer, CustomerSerializer, RentalSerializer
 
 # Create your views here.
 class FilmViewSet(viewsets.ModelViewSet):
@@ -90,6 +90,15 @@ class ActorViewSet(viewsets.ModelViewSet):
 class CustomerViewSet(viewsets.ModelViewSet):
     serializer_class = CustomerSerializer
     
+    @action(methods=['get'], detail=True, url_path='rentals', url_name='rentals')
+    def get_customer_rentals(self, request, pk=None):
+        queryset = Rental.objects.filter(return_date__isnull=True)
+        queryset = queryset.filter(inventory__store_id=1)
+        if pk is not None:
+            queryset = queryset.filter(customer_id=pk)
+        serializer = RentalSerializer(queryset, many=True)
+        return Response(serializer.data)
+
     def get_queryset(self):
         queryset = Customer.objects.all()
         queryset = queryset.filter(store_id=1)
@@ -104,3 +113,11 @@ class CustomerViewSet(viewsets.ModelViewSet):
         if cust_id is not None:
             queryset = queryset.filter(customer_id=cust_id)
         return queryset
+
+class RentalViewSet(viewsets.ModelViewSet):
+    serializer_class = RentalSerializer
+
+    def get_queryset(self):
+        queryset = Rental.objects.all()
+        return queryset
+

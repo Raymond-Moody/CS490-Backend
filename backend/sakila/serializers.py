@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Film, Actor, Customer, City, Country, Address
+from .models import Film, Actor, Customer, City, Country, Address, Inventory, Rental
 
 class FilmSerializer(serializers.ModelSerializer):
     language = serializers.StringRelatedField(many=False)
@@ -60,3 +60,14 @@ class CustomerSerializer(serializers.ModelSerializer):
         ret['last_name'] = ret['last_name'].title()
         return ret
 
+class InventorySerializer(serializers.ModelSerializer):
+    film = FilmSerializer(many=False)
+    class Meta:
+        model = Inventory
+        fields = ['inventory_id', 'store_id', 'film']
+
+class RentalSerializer(serializers.ModelSerializer):
+    inventory = InventorySerializer(many=False)
+    class Meta:
+        model = Rental
+        fields = ['rental_id','rental_date', 'customer_id', 'return_date', 'staff_id', 'inventory']
