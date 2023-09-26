@@ -196,7 +196,7 @@ class Rental(models.Model):
     last_update = models.DateTimeField()
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'rental'
         unique_together = (('rental_date', 'inventory', 'customer'),)
 

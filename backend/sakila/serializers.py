@@ -67,7 +67,8 @@ class InventorySerializer(serializers.ModelSerializer):
         fields = ['inventory_id', 'store_id', 'film']
 
 class RentalSerializer(serializers.ModelSerializer):
-    inventory = InventorySerializer(many=False)
+    inventory = InventorySerializer(many=False, read_only=True)
+
     class Meta:
         model = Rental
-        fields = ['rental_id','rental_date', 'customer_id', 'return_date', 'staff_id', 'inventory']
+        fields = ['rental_id','rental_date', 'customer_id', 'return_date', 'staff_id', 'inventory_id', 'inventory']

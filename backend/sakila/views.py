@@ -5,7 +5,7 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
-from .models import Film, Actor, Customer, Rental
+from .models import Film, Actor, Customer, Rental, Inventory
 from .serializers import FilmSerializer, ActorSerializer, CustomerSerializer, RentalSerializer
 
 # Create your views here.
@@ -25,6 +25,13 @@ class FilmViewSet(viewsets.ModelViewSet):
                                     ''')
         serializer = FilmSerializer(queryset, many=True)
         return Response(serializer.data)
+
+    @action(methods=['get'], detail=True, url_path='copies-available', url_name='copies-available')
+    def get_availble_copies(self, request, pk=None):
+        inventory_count = Inventory.objects.filter(store_id=1).filter(film_id=pk).count()
+        rented_out = Rental.objects.filter(inventory__store_id=1).filter(inventory__film_id=pk).filter(return_date__isnull=True).count()
+        count = inventory_count - rented_out
+        return Response({'available' : count})
 
     def get_queryset(self):
         queryset = Film.objects.all()
