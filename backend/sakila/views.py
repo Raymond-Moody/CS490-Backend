@@ -1,11 +1,11 @@
 from django.shortcuts import render
 from django.db.models import Q
 
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
-from .models import Film, Actor, Customer, Rental, Inventory
+from .models import Film, Actor, Customer, Rental, Inventory, Staff
 from .serializers import FilmSerializer, ActorSerializer, CustomerSerializer, RentalSerializer
 
 # Create your views here.
@@ -26,12 +26,12 @@ class FilmViewSet(viewsets.ModelViewSet):
         serializer = FilmSerializer(queryset, many=True)
         return Response(serializer.data)
 
-    @action(methods=['get'], detail=True, url_path='copies-available', url_name='copies-available')
+    @action(methods=['get'], detail=True, url_path='inventory', url_name='inventory')
     def get_availble_copies(self, request, pk=None):
-        inventory_count = Inventory.objects.filter(store_id=1).filter(film_id=pk).count()
-        rented_out = Rental.objects.filter(inventory__store_id=1).filter(inventory__film_id=pk).filter(return_date__isnull=True).count()
-        count = inventory_count - rented_out
-        return Response({'available' : count})
+        inventory_total = Inventory.objects.filter(store_id=1).filter(film_id=pk)
+        rented_out = inventory_total.filter(rental__return_date__isnull=True)
+        available = inventory_total.difference(rented_out)
+        return Response({'copies' : available.count(), 'inventory' : available.values()})
 
     def get_queryset(self):
         queryset = Film.objects.all()
@@ -127,4 +127,19 @@ class RentalViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = Rental.objects.all()
         return queryset
+
+    def create(self, validated_data):
+        serializer = RentalSerializer(data=self.request.data)
+        inventory_id = self.request.data.pop('inventory_id')
+        customer_id = self.request.data.pop('customer_id')
+        staff_id = self.request.data.pop('staff_id')
+        inventory_instance = Inventory.objects.filter(inventory_id=inventory_id).first()
+        customer_instance = Customer.objects.filter(customer_id=customer_id).first()
+        staff_instance = Staff.objects.filter(staff_id=staff_id).first()
+        if not serializer.is_valid():
+            print(serializer.errors)
+        else:
+            data = serializer.validated_data
+            serializer.save(inventory=inventory_instance, customer=customer_instance, staff=staff_instance)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
