@@ -148,7 +148,12 @@ class RentalViewSet(viewsets.ModelViewSet):
             data = serializer.validated_data
             try:
                 serializer.save(inventory=inventory_instance, customer=customer_instance, staff=staff_instance)
-            except:
-                return Response(status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                if "customer_id" in e.args[1]:
+                    return Response("customer_id", status=status.HTTP_400_BAD_REQUEST)
+                elif "staff_id" in e.args[1]:
+                    return Response("staff_id", status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    return Response("other", status=status.HTTP_400_BAD_REQUEST)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
