@@ -100,6 +100,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
         queryset = Rental.objects.all()
         if pk is not None:
             queryset = queryset.filter(customer_id=pk)
+        queryset = queryset.order_by('return_date')
         serializer = RentalSerializer(queryset, many=True)
         return Response(serializer.data)
 
@@ -117,12 +118,21 @@ class CustomerViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(customer_id=cust_id)
         return queryset
 
+    def destroy(self, request, *args, **kwargs):
+        customer = self.get_object()
+        custID = customer.pk
+        cust_rentals = Rental.objects.filter(customer_id=custID)
+        for rental in cust_rentals:
+            rental.delete()
+        try:
+            customer.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
 class RentalViewSet(viewsets.ModelViewSet):
     serializer_class = RentalSerializer
-
-    def get_queryset(self):
-        queryset = Rental.objects.all()
-        return queryset
+    queryset = Rental.objects.all()
 
     def create(self, validated_data):
         serializer = RentalSerializer(data=self.request.data)
