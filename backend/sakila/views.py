@@ -28,7 +28,7 @@ class FilmViewSet(viewsets.ModelViewSet):
 
     @action(methods=['get'], detail=True, url_path='inventory', url_name='inventory')
     def get_availble_copies(self, request, pk=None):
-        inventory_total = Inventory.objects.filter(store_id=1).filter(film_id=pk)
+        inventory_total = Inventory.objects.filter(film_id=pk)
         rented_out = inventory_total.filter(rental__return_date__isnull=True)
         available = inventory_total.difference(rented_out)
         return Response({'copies' : available.count(), 'inventory' : available.values()})
@@ -42,7 +42,6 @@ class FilmViewSet(viewsets.ModelViewSet):
         if len(titles) != 0:
             queryset = queryset.filter(title__in=titles)
         if len(actors) != 0:
-            print(actors)
             actorQuery = Q()
             for actor in actors:
                 names = actor.split()
@@ -69,7 +68,6 @@ class ActorViewSet(viewsets.ModelViewSet):
                                     INNER JOIN film_actor FA ON A.actor_id = FA.actor_id
                                     INNER JOIN film F on FA.film_id = F.film_id
                                     INNER JOIN inventory I on F.film_id = I.film_id
-                                    WHERE I.store_id = 1
                                     GROUP BY A.actor_id
                                     ORDER BY movies DESC, A.last_name
                                     LIMIT 5;
@@ -99,8 +97,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
     
     @action(methods=['get'], detail=True, url_path='rentals', url_name='rentals')
     def get_customer_rentals(self, request, pk=None):
-        queryset = Rental.objects.filter(return_date__isnull=True)
-        queryset = queryset.filter(inventory__store_id=1)
+        queryset = Rental.objects.all()
         if pk is not None:
             queryset = queryset.filter(customer_id=pk)
         serializer = RentalSerializer(queryset, many=True)
@@ -108,7 +105,6 @@ class CustomerViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = Customer.objects.all()
-        queryset = queryset.filter(store_id=1)
         parameters = self.request.query_params
         fname = parameters.get('first_name')
         lname = parameters.get('last_name')
@@ -137,9 +133,12 @@ class RentalViewSet(viewsets.ModelViewSet):
         customer_instance = Customer.objects.filter(customer_id=customer_id).first()
         staff_instance = Staff.objects.filter(staff_id=staff_id).first()
         if not serializer.is_valid():
-            print(serializer.errors)
+            print("error=",serializer.errors)
         else:
             data = serializer.validated_data
-            serializer.save(inventory=inventory_instance, customer=customer_instance, staff=staff_instance)
+            try:
+                serializer.save(inventory=inventory_instance, customer=customer_instance, staff=staff_instance)
+            except:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
