@@ -5,8 +5,8 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
-from .models import Film, Actor, Customer, Rental, Inventory, Staff
-from .serializers import FilmSerializer, ActorSerializer, CustomerSerializer, RentalSerializer
+from .models import Film, Actor, Customer, Rental, Inventory, Staff, Country, City, Address, Store
+from .serializers import FilmSerializer, ActorSerializer, CustomerSerializer, RentalSerializer, AddressSerializer, StoreSerializer
 
 # Create your views here.
 class FilmViewSet(viewsets.ModelViewSet):
@@ -130,6 +130,54 @@ class CustomerViewSet(viewsets.ModelViewSet):
         except:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
+    def create(self, validated_data):
+        #print(self.request.data)
+        country_name = self.request.data.pop('country')
+        country_instance = Country.objects.filter(country=country_name).first() #using this instead of get() so we can check for None
+        if country_instance is None:
+            country_instance = Country.objects.create(country=country_name)
+
+        city_name = self.request.data.pop('city')
+        city_instance = City.objects.filter(city=city_name, country=country_instance).first()
+        if city_instance is None:
+            city_instance = City.objects.create(city=city_name, country=country_instance)
+        
+        address = self.request.data.pop('address')
+        address2 = self.request.data.pop('address2')
+        district = self.request.data.pop('district')
+        postal = self.request.data.pop('postal_code')
+        phone = self.request.data.pop('phone')
+
+        #NULLable fields are sometimes entered as just '' in the database so we check for both
+        if address2 is None:
+            address2Query = Q(address2=None) | Q(address2='')
+        else:
+            address2Query = Q(address2=address2)
+
+        if postal is None:
+            postalQuery = Q(postal_code=None) | Q(postal_code='')
+        else:
+            postalQuery = Q(postal_code=postal)
+
+        address_instance = Address.objects.filter(postalQuery & address2Query, address=address, district=district, phone=phone, city=city_instance).first()
+        if address_instance is None:
+            address_instance = Address.objects.create(address=address, address2=address2, district=district, city=city_instance, postal_code=postal, phone=phone)
+        else:
+            print("address_id = ", address_instance.address_id)
+
+        cust = Customer(store_id=1, active=1, address=address_instance)
+        serializer = CustomerSerializer(cust, data=self.request.data) 
+        if not serializer.is_valid():
+            print("error=", serializer.errors)
+        else:
+            try:
+                serializer.save()
+                return Response(status=status.HTTP_201_CREATED)
+            except Exception as e:
+                print(e)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
 class RentalViewSet(viewsets.ModelViewSet):
     serializer_class = RentalSerializer
     queryset = Rental.objects.all()
@@ -145,7 +193,6 @@ class RentalViewSet(viewsets.ModelViewSet):
         if not serializer.is_valid():
             print("error=",serializer.errors)
         else:
-            data = serializer.validated_data
             try:
                 serializer.save(inventory=inventory_instance, customer=customer_instance, staff=staff_instance)
             except Exception as e:

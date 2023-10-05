@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Film, Actor, Customer, City, Country, Address, Inventory, Rental
+from .models import Film, Actor, Customer, City, Country, Address, Inventory, Rental, Store
 
 class FilmSerializer(serializers.ModelSerializer):
     language = serializers.StringRelatedField(many=False)
@@ -43,12 +43,14 @@ class CitySerializer(serializers.ModelSerializer):
 
 class AddressSerializer(serializers.ModelSerializer):
     city = CitySerializer(many=False)
+
     class Meta:
         model = Address
         fields = ['address_id', 'address', 'address2', 'district', 'postal_code', 'phone', 'city']
 
 class CustomerSerializer(serializers.ModelSerializer):
-    address = AddressSerializer(many=False) 
+    address = AddressSerializer(many=False, read_only=True) 
+
     class Meta:
         model = Customer
         fields = ['customer_id', 'first_name', 'last_name', 'email', 'address'];
@@ -72,3 +74,8 @@ class RentalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rental
         fields = ['rental_id','rental_date', 'customer_id', 'return_date', 'staff_id', 'inventory_id', 'inventory']
+
+class StoreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Store
+        fields = ['store_id', 'manager_staff_id', 'address_id']
