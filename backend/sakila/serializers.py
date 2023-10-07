@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Film, Actor, Customer, City, Country, Address, Inventory, Rental, Store
+from django.db.models import Q
 
 class FilmSerializer(serializers.ModelSerializer):
     language = serializers.StringRelatedField(many=False)
@@ -9,7 +10,6 @@ class FilmSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Film
-#        fields = '__all__'
         fields = ['film_id', 'title', 'description', 'release_year', 'language', 'original_language', 'rental_duration', 'rental_rate', 'length', 'replacement_cost', 'rating', 'special_features', 'last_update', 'categories']
 
     def to_representation(self, instance):
@@ -35,11 +35,19 @@ class CountrySerializer(serializers.ModelSerializer):
         model = Country
         fields = ['country_id', 'country']
 
+
 class CitySerializer(serializers.ModelSerializer):
     country = CountrySerializer(many=False);
+
     class Meta:
         model = City
         fields = ['city_id', 'city', 'country']
+
+    def create(self, validated_data):
+        country_name = validated_data.pop('country')
+        country_instance, created = Country.objects.get_or_create(country=country_name) #get country instance and a bool saying if we created a new instance
+        city_instance = City.objects.create(**validated_data, country=country_instance)
+        return city_instance
 
 class AddressSerializer(serializers.ModelSerializer):
     city = CitySerializer(many=False)
@@ -48,8 +56,15 @@ class AddressSerializer(serializers.ModelSerializer):
         model = Address
         fields = ['address_id', 'address', 'address2', 'district', 'postal_code', 'phone', 'city']
 
+    def create(self, validated_data):
+        country_name = validated_data.pop('country')
+        city_name = validated_data.pop('city')
+        city_instance, created = City.objects.get_or_create(city=city_name, country=country_name)
+        address_instance = Address.objects.create(**validated_data, city=city_instance)
+        return address_instance
+
 class CustomerSerializer(serializers.ModelSerializer):
-    address = AddressSerializer(many=False, read_only=True) 
+    address = AddressSerializer(many=False) 
 
     class Meta:
         model = Customer
@@ -61,6 +76,27 @@ class CustomerSerializer(serializers.ModelSerializer):
         ret['first_name'] = ret['first_name'].title()
         ret['last_name'] = ret['last_name'].title()
         return ret
+
+    def create(self, validated_data):
+        #get data for address
+        address = validated_data.pop('address')
+
+        
+        if address['address2'] is None:
+            addr2Q = Q(address2='') | Q(address2=None)
+        else:
+            addr2Q = Q(address2=address['address2'])
+
+        country_instance, created = Country.objects.get_or_create(country=address['city']['country']['country'])
+        city_instance, created = City.objects.get_or_create(city=address['city']['city'], country=country_instance)
+        address_instance, created = Address.objects\
+                                                    .filter(addr2Q)\
+                                                    .get_or_create(address=address['address'], district=address['district'],\
+                                                                   postal_code=address['postal_code'], phone=address['phone'],\
+                                                                   city=city_instance,\
+                                                                   defaults={'address2' : address['address2']})
+        customer_instance = Customer.objects.create(**validated_data, address=address_instance, store_id=1, active=1)
+        return customer_instance
 
 class InventorySerializer(serializers.ModelSerializer):
     film = FilmSerializer(many=False)
