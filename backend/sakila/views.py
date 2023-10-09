@@ -108,7 +108,6 @@ class CustomerViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = Customer.objects.prefetch_related(Prefetch('rental_set', queryset=Rental.objects.order_by('return_date'))).all()
-       # queryset = Customer.objects.all()
         parameters = self.request.query_params
         fname = parameters.get('first_name')
         lname = parameters.get('last_name')
@@ -132,6 +131,21 @@ class CustomerViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_204_NO_CONTENT)
         except:
             return Response(status=status.HTTP_404_NOT_FOUND)
+
+    '''
+    def partial_update(self, request, pk=None):
+        customer = Customer.objects.get(customer_id=pk)
+        serializer = CustomerSerializer(customer, data=request.data, partial=True)
+        #serializer = CustomerSerializer(customer)
+        if not serializer.is_valid():
+            print("error=",serializer.errors)
+        else:
+            try:
+                serializer.save()
+            except Exception as e:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_202_ACCEPTED)
+    '''
 
 class RentalViewSet(viewsets.ModelViewSet):
     serializer_class = RentalSerializer
