@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.db.models import Q
+from django.db.models import Q, Prefetch
 
 from rest_framework import viewsets, status
 from rest_framework.response import Response
@@ -95,6 +95,7 @@ class ActorViewSet(viewsets.ModelViewSet):
 class CustomerViewSet(viewsets.ModelViewSet):
     serializer_class = CustomerSerializer
     
+    '''
     @action(methods=['get'], detail=True, url_path='rentals', url_name='rentals')
     def get_customer_rentals(self, request, pk=None):
         queryset = Rental.objects.all()
@@ -103,9 +104,11 @@ class CustomerViewSet(viewsets.ModelViewSet):
         queryset = queryset.order_by('return_date')
         serializer = RentalSerializer(queryset, many=True)
         return Response(serializer.data)
+        '''
 
     def get_queryset(self):
-        queryset = Customer.objects.all()
+        queryset = Customer.objects.prefetch_related(Prefetch('rental_set', queryset=Rental.objects.order_by('return_date'))).all()
+       # queryset = Customer.objects.all()
         parameters = self.request.query_params
         fname = parameters.get('first_name')
         lname = parameters.get('last_name')

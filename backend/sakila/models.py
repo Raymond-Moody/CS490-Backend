@@ -83,7 +83,7 @@ class Customer(models.Model):
     store = models.ForeignKey('Store', on_delete=models.RESTRICT)
     first_name = models.CharField(max_length=45)
     last_name = models.CharField(max_length=45)
-    email = models.CharField(max_length=50, blank=True, null=True)
+    email = models.EmailField(max_length=50, blank=True, null=True)
     address = models.ForeignKey(Address, on_delete=models.RESTRICT)
     active = models.IntegerField()
     create_date = models.DateTimeField()
@@ -114,6 +114,9 @@ class Film(models.Model):
     class Meta:
         managed = False
         db_table = 'film'
+
+    def __str__(self):
+        return self.title.title()
 
 
 class FilmActor(models.Model):

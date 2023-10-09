@@ -6,7 +6,6 @@ class FilmSerializer(serializers.ModelSerializer):
     language = serializers.StringRelatedField(many=False)
     original_language = serializers.StringRelatedField(many=False)
     categories = serializers.StringRelatedField(many=True)
-    #actors = serializers.StringRelatedField(many=True)
 
     class Meta:
         model = Film
@@ -63,12 +62,33 @@ class AddressSerializer(serializers.ModelSerializer):
         address_instance = Address.objects.create(**validated_data, city=city_instance)
         return address_instance
 
+class InventorySerializer(serializers.ModelSerializer):
+    #film = FilmSerializer(many=False)
+    film = serializers.StringRelatedField(many=False)
+
+    class Meta:
+        model = Inventory
+        fields = ['inventory_id', 'store_id', 'film']
+
+class RentalSerializer(serializers.ModelSerializer):
+    inventory = InventorySerializer(many=False, read_only=True)
+
+    class Meta:
+        model = Rental
+        fields = ['rental_id','rental_date', 'customer_id', 'return_date', 'staff_id', 'inventory_id', 'inventory']
+
+class StoreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Store
+        fields = ['store_id', 'manager_staff_id', 'address_id']
+
 class CustomerSerializer(serializers.ModelSerializer):
     address = AddressSerializer(many=False) 
+    rentals = RentalSerializer(source='rental_set', many=True)
 
     class Meta:
         model = Customer
-        fields = ['customer_id', 'first_name', 'last_name', 'email', 'address'];
+        fields = ['customer_id', 'first_name', 'last_name', 'email', 'create_date', 'address', 'rentals'];
 
     def to_representation(self, instance):
         #Convert name to Title Case
@@ -97,21 +117,3 @@ class CustomerSerializer(serializers.ModelSerializer):
                                                                    defaults={'address2' : address['address2']})
         customer_instance = Customer.objects.create(**validated_data, address=address_instance, store_id=1, active=1)
         return customer_instance
-
-class InventorySerializer(serializers.ModelSerializer):
-    film = FilmSerializer(many=False)
-    class Meta:
-        model = Inventory
-        fields = ['inventory_id', 'store_id', 'film']
-
-class RentalSerializer(serializers.ModelSerializer):
-    inventory = InventorySerializer(many=False, read_only=True)
-
-    class Meta:
-        model = Rental
-        fields = ['rental_id','rental_date', 'customer_id', 'return_date', 'staff_id', 'inventory_id', 'inventory']
-
-class StoreSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Store
-        fields = ['store_id', 'manager_staff_id', 'address_id']
