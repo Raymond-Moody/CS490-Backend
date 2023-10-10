@@ -89,6 +89,14 @@ DATABASES = {
         'PASSWORD' : 'password1',
         'HOST' : 'localhost',
         'PORT' : '3306',
+    },
+    'TEST': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'sakila',
+        'USER' : 'django',
+        'PASSWORD' : 'password1',
+        'HOST' : 'localhost',
+        'PORT' : '3306',
     }
 }
 
@@ -141,3 +149,6 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+#Use custom test runner
+TEST_RUNNER = 'sakila.test_runner.SakilaTestRunner'

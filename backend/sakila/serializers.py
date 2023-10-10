@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Film, Actor, Customer, City, Country, Address, Inventory, Rental, Store
+from .models import Film, Actor, Customer, City, Country, Address, Inventory, Rental, Store, FilmActor, FilmCategory
 from django.db.models import Q
 
 class FilmSerializer(serializers.ModelSerializer):

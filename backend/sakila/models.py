@@ -119,10 +119,20 @@ class Film(models.Model):
         return self.title.title()
 
 
+class FilmActorManager(models.Manager):
+    def get_by_natural_key(self, actor, film):
+        return self.get(actor_id=actor__id, film_id=film__id)
+    
 class FilmActor(models.Model):
-    actor = models.ForeignKey(Actor, on_delete=models.RESTRICT)  # The composite primary key (actor_id, film_id) found, that is not supported. The first column is selected.
+    objects = FilmActorManager()
+
+    actor = models.ForeignKey(Actor, on_delete=models.RESTRICT)
     film = models.ForeignKey(Film, on_delete=models.RESTRICT)
     last_update = models.DateTimeField()
+
+
+    def natural_key(self): #used to exclude automatic primary key when making fixture
+        return (self.actor__id, self.film__id)
 
     class Meta:
         managed = False
@@ -134,6 +144,9 @@ class FilmCategory(models.Model):
     film = models.ForeignKey(Film, on_delete=models.RESTRICT)  # The composite primary key (film_id, category_id) found, that is not supported. The first column is selected.
     category = models.ForeignKey(Category, on_delete=models.RESTRICT)
     last_update = models.DateTimeField()
+
+    def natural_key(self):
+        return (self.film, self.category)
 
     class Meta:
         managed = False
