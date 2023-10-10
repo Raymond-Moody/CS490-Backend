@@ -5,11 +5,11 @@ from sakila.views import FilmViewSet, ActorViewSet
 # Create your tests here.
 class FilmViewSetTest(APITestCase):
     def test_get_top_films(self):
-        expected_titles = ['Bucket Brotherhood', 'Rocketeer Mother', 'Forward Temple', 'Grit Clockwork', 'Juggler Hardly']
+        expected_titles = [103, 738, 331, 382, 489]
         response = self.client.get('/films/top/')
         for i in range(len(response.data)):
             #print(response.data[i]['title'], ':', expected_titles[i])
-            self.assertEqual(response.data[i]['title'], expected_titles[i])
+            self.assertEqual(response.data[i]['film_id'], expected_films[i])
 
     def test_get_available_copies(self):
         expected_inventory_14 = {
@@ -56,3 +56,17 @@ class FilmViewSetTest(APITestCase):
 
         self.assertEqual(response14.json(), expected_inventory_14)
         self.assertEqual(response17.json(), expected_inventory_17)
+
+class FilmViewSetTest(APITestCase):
+    def test_get_top_actors(self):
+        expected_actors = [107,102,198,181,23]
+        response = self.client.get('/actors/top/')
+        for i in range(len(response.data)):
+            self.assertEqual(response.data[i]['actor_id'], expected_actors[i])
+
+    def test_get_actor_movies(self):
+        expected_films = [361, 970, 166, 1, 25]
+        response = self.client.get('/actors/1/top-movies/')
+        for i in range(len(response.data)):
+            self.assertEqual(response.data[i]['film_id'], expected_films[i])
+        pass

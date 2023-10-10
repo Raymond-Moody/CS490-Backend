@@ -67,7 +67,6 @@ class ActorViewSet(viewsets.ModelViewSet):
                                     FROM actor A
                                     INNER JOIN film_actor FA ON A.actor_id = FA.actor_id
                                     INNER JOIN film F on FA.film_id = F.film_id
-                                    INNER JOIN inventory I on F.film_id = I.film_id
                                     GROUP BY A.actor_id
                                     ORDER BY movies DESC, A.last_name
                                     LIMIT 5;
@@ -78,7 +77,7 @@ class ActorViewSet(viewsets.ModelViewSet):
     @action(methods=['get'], detail=True, url_path='top-movies', url_name='top-movies')
     def get_actor_movies(self, request, pk=None):
         queryset = Film.objects.raw('''
-                                     SELECT F.film_id, F.title, COUNT(R.rental_id) AS rented
+                                    SELECT F.film_id, F.title, COUNT(R.rental_id) AS rented
                                     FROM rental R
                                     INNER JOIN inventory I ON R.inventory_id = I.inventory_id
                                     INNER JOIN film F ON I.film_id = F.film_id
