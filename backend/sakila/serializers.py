@@ -100,7 +100,7 @@ class CustomerSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         #get data for address
         address = validated_data.pop('address')
-
+        _rentals = validated_data.pop('rental_set', None)
         
         if address['address2'] is None:
             addr2Q = Q(address2='') | Q(address2=None)
@@ -119,17 +119,16 @@ class CustomerSerializer(serializers.ModelSerializer):
         return customer_instance
 
     def update(self, instance, validated_data):
-        print(validated_data)
         address_data = validated_data.pop('address', None)
+
         for key in validated_data:
             setattr(instance, key, validated_data.get(key))
-            print(key,':',validated_data[key])
-        if address_data is not None:
 
+        if address_data is not None:
             if address_data['address2'] is None:
                 addr2Q = Q(address2='') | Q(address2=None)
             else:
-                addr2Q = Q(address2=address['address2'])
+                addr2Q = Q(address2=address_data['address2'])
 
             country_instance, created = Country.objects.get_or_create(country=address_data['city']['country']['country'])
             city_instance, created = City.objects.get_or_create(city=address_data['city']['city'], country=country_instance) 
