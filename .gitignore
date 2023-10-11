@@ -1,6 +1,7 @@
 *.pyc
 *.pyo
 __pycache__/
+venv/
 
 *.log
 local_settings.py
