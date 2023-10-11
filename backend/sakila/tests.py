@@ -82,13 +82,6 @@ class CustomerViewSetTest(APITestCase):
                     }
         self.customer = Customer.objects.create(**cust_data, address=Address.objects.get(address_id=10))
 
-    '''
-    def tearDown(self):
-        self.customer.delete()
-        Address.objects.filter(address_id__gt=605).delete()
-        City.objects.filter(city_id__gt=600).delete()
-        #Country.objects.filter(country_id__gt=109).delete()
-    '''
 
     # Test that we can edit a customer's information
     def test_customer_edit(self):

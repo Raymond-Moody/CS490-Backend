@@ -101,25 +101,27 @@ class CustomerSerializer(serializers.ModelSerializer):
         #get data for address
         address = validated_data.pop('address')
         _rentals = validated_data.pop('rental_set', None)
+        date = validated_data.get('last_update', None)
         
         if address['address2'] is None:
             addr2Q = Q(address2='') | Q(address2=None)
         else:
             addr2Q = Q(address2=address['address2'])
 
-        country_instance, created = Country.objects.get_or_create(country=address['city']['country']['country'])
-        city_instance, created = City.objects.get_or_create(city=address['city']['city'], country=country_instance)
+        country_instance, created = Country.objects.get_or_create(country=address['city']['country']['country'], defaults={'last_update' : date})
+        city_instance, created = City.objects.get_or_create(city=address['city']['city'], country=country_instance, defaults={'last_update' : date})
         address_instance, created = Address.objects\
                                                     .filter(addr2Q)\
                                                     .get_or_create(address=address['address'], district=address['district'],\
                                                                    postal_code=address['postal_code'], phone=address['phone'],\
                                                                    city=city_instance,\
-                                                                   defaults={'address2' : address['address2']})
+                                                                   defaults={'address2' : address['address2'], 'last_update' : date})
         customer_instance = Customer.objects.create(**validated_data, address=address_instance, store_id=1, active=1)
         return customer_instance
 
     def update(self, instance, validated_data):
         address_data = validated_data.pop('address', None)
+        date = validated_data.get('last_update', None)
 
         for key in validated_data:
             setattr(instance, key, validated_data.get(key))
@@ -130,14 +132,14 @@ class CustomerSerializer(serializers.ModelSerializer):
             else:
                 addr2Q = Q(address2=address_data['address2'])
 
-            country_instance, created = Country.objects.get_or_create(country=address_data['city']['country']['country'])
-            city_instance, created = City.objects.get_or_create(city=address_data['city']['city'], country=country_instance) 
+            country_instance, created = Country.objects.get_or_create(country=address_data['city']['country']['country'], defaults={'last_update' : date})
+            city_instance, created = City.objects.get_or_create(city=address_data['city']['city'], country=country_instance, defaults={'last_update' : date}) 
             address_instance, created = Address.objects\
                                                         .filter(addr2Q)\
                                                         .get_or_create(address=address_data['address'], district=address_data['district'],\
                                                                        postal_code=address_data['postal_code'], phone=address_data['phone'],\
                                                                        city=city_instance,\
-                                                                       defaults={'address2' : address_data['address2']})
+                                                                       defaults={'address2' : address_data['address2'], 'last_update' : date})
             instance.address = address_instance 
         instance.save()
         return instance
