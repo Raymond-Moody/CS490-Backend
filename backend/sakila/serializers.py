@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework import serializers
 from .models import Film, Actor, Customer, City, Country, Address, Inventory, Rental, Store, FilmActor, FilmCategory
 from django.db.models import Q
@@ -101,7 +102,7 @@ class CustomerSerializer(serializers.ModelSerializer):
         #get data for address
         address = validated_data.pop('address')
         _rentals = validated_data.pop('rental_set', None)
-        date = validated_data.get('last_update', None)
+        date = timezone.now() 
         
         if address['address2'] is None:
             addr2Q = Q(address2='') | Q(address2=None)
@@ -121,7 +122,7 @@ class CustomerSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         address_data = validated_data.pop('address', None)
-        date = validated_data.get('last_update', None)
+        date = timezone.now() 
 
         for key in validated_data:
             setattr(instance, key, validated_data.get(key))
