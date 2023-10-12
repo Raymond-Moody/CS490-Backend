@@ -31,6 +31,6 @@ The test database can be the same as the default database.
 Ensure that your mysql server is started.\
 From the mysql client, please run `ALTER TABLE address DROP COLUMN location` for both the default and test databases. 
 
-Move into the 'backend/' directory. From there: 
--Run `python manage.py test` to run the unit tests.
--Run `python manage.py runserver` to start the server at http://localhost:8000.
+Move into the 'backend/' directory. From there:
+- Run `python manage.py test` to run the unit tests.
+- Run `python manage.py runserver` to start the server at http://localhost:8000.
